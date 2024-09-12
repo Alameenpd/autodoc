@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -34,9 +35,12 @@ export async function POST(request: Request) {
     return NextResponse.json(project);
   } catch (error) {
     console.error('Error creating project:', error);
-    if ((error as string).code === 'P2003') {
+
+    // Check if the error is a PrismaClientKnownRequestError and has a P2003 code
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
       return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
     }
+
     return NextResponse.json({ error: 'Error creating project' }, { status: 500 });
   }
 }

@@ -1,74 +1,27 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { DocGenerationDashboard } from '@/components/DocGenerationDashboard';
+import { DocGenerationStats, DocGenerationHistory } from '@/types';
 
-interface DocGenerationStats {
-  totalDocs: number;
-  lastGenerated: string;
-  averageGenerationTime: number;
-}
+const stats: DocGenerationStats = {
+  totalDocs: 50,
+  lastGenerated: '2024-09-10T12:34:56Z',
+  averageGenerationTime: 3.45,
+};
 
-interface DocGenerationHistory {
-  date: string;
-  docsGenerated: number;
-  generationTime: number;
-}
+const history: DocGenerationHistory[] = [
+  { date: '2024-09-09', docsGenerated: 5, generationTime: 4.0 },
+  { date: '2024-09-08', docsGenerated: 10, generationTime: 3.5 },
+  { date: '2024-09-07', docsGenerated: 8, generationTime: 3.8 },
+];
 
-interface DashboardProps {
-  repositoryId: string;
-  stats: DocGenerationStats;
-  history: DocGenerationHistory[];
-  onRegenerateClick: () => void;
-}
+export default function DashboardPage() {
+  const handleRegenerateClick = () => {
+    // Logic to regenerate documentation
+    console.log('Regenerate Documentation clicked');
+  };
 
-export function DocGenerationDashboard({ repositoryId, stats, history, onRegenerateClick }: DashboardProps) {
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Documentation Generation Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm font-medium">Total Documents</p>
-              <p className="text-2xl font-bold">{stats.totalDocs}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium">Last Generated</p>
-              <p className="text-2xl font-bold">{new Date(stats.lastGenerated).toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium">Avg. Generation Time</p>
-              <p className="text-2xl font-bold">{stats.averageGenerationTime.toFixed(2)}s</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Generation History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={history}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-              <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-              <Tooltip />
-              <Legend />
-              <Bar yAxisId="left" dataKey="docsGenerated" fill="#8884d8" name="Docs Generated" />
-              <Bar yAxisId="right" dataKey="generationTime" fill="#82ca9d" name="Generation Time (s)" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Button onClick={onRegenerateClick}>Regenerate Documentation</Button>
-    </div>
+  return ( 
+     <div>Dashboard Page</div>
+    
   );
 }

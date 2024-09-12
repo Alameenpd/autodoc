@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'GitHub access token not found' }, { status: 404 });
     }
 
-    const docService = new DocGenerationService(accessToken.access_token);
+    const docService = new DocGenerationService((accessToken as any).access_token);
     await docService.generateAndSaveDocumentation(repository.id);
 
     return NextResponse.json({ message: 'Documentation updated successfully' });

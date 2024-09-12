@@ -37,7 +37,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
                   <div className="flex justify-between items-center">
                     <span>{repo.name}</span>
                     <div>
-                      <Button variant="outline" className="mr-2" onClick={() => window.open(repo.url, '_blank')}>
+                      <Button variant="outline" className="mr-2" onClick={() => window.open((repo as any).url, '_blank')}>
                         View on GitHub
                       </Button>
                       <Link href={`/repositories/${repo.id}/docs`} passHref>
