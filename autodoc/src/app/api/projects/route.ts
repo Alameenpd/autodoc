@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     return NextResponse.json(project);
   } catch (error) {
     console.error('Error creating project:', error);
-    if ((error as any).code === 'P2003') {
+    if ((error as string).code === 'P2003') {
       return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
     }
     return NextResponse.json({ error: 'Error creating project' }, { status: 500 });

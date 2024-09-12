@@ -13,12 +13,12 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async session({ session, token }: any) {
+    async session({ session, token }: string) {
       // Attach the accessToken to the session
       session.accessToken = token.accessToken;
       return session;
     },
-    async jwt({ token, account }: any) {
+    async jwt({ token, account }: string) {
       // Persist the access token to the token object
       if (account) {
         token.accessToken = account.access_token;
