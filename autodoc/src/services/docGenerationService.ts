@@ -4,7 +4,7 @@ import * as parser from '@babel/parser';
 import traverse from '@babel/traverse';
 import { Comment } from '@babel/types';
 import ignore from 'ignore';
-import OpenAI from 'openai';
+import nlp from 'compromise';
 
 interface CustomConfig {
   ignore?: string[];
@@ -16,13 +16,11 @@ export class DocGenerationService {
   private octokit: Octokit;
   private customConfig: CustomConfig;
   private ig: ReturnType<typeof ignore>;
-  private openai: OpenAI;
 
   constructor(accessToken: string, customConfig: CustomConfig = {}) {
     this.octokit = new Octokit({ auth: accessToken });
     this.customConfig = customConfig;
     this.ig = ignore().add(customConfig.ignore || []);
-    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   }
 
   async generateDocumentation(repoFullName: string): Promise<string> {
@@ -34,7 +32,7 @@ export class DocGenerationService {
       documentation += await this.processRepository(owner, repo);
 
       if (this.customConfig.aiEnhancement) {
-        documentation = await this.enhanceDocumentationWithAI(documentation);
+        documentation = this.enhanceDocumentationWithNLP(documentation);
       }
 
       return documentation;
@@ -237,34 +235,42 @@ Last Updated: ${new Date(repoData.updated_at).toLocaleDateString()}
     return undefined;
   }
 
-  private async enhanceDocumentationWithAI(documentation: string): Promise<string> {
-    try {
-      const prompt = `
-        You are an expert technical writer. Your task is to enhance the following software documentation:
+  private enhanceDocumentationWithNLP(documentation: string): string {
+    const doc = nlp(documentation);
 
-        ${documentation}
+    // Capitalize proper nouns
+    doc.match('#ProperNoun').forEach(match => {
+      match.toTitleCase();
+    });
 
-        Please improve this documentation by:
-        1. Adding clear and concise explanations for complex parts
-        2. Organizing the content in a more structured manner
-        3. Adding examples where appropriate
-        4. Ensuring consistent formatting and style
-        5. Highlighting important notes or warnings
+    // Add periods to the end of sentences if missing
+    doc.sentences().forEach(sentence => {
+      if (!sentence.has('#Period')) {
+        sentence.append('.');
+      }
+    });
 
-        Return the enhanced documentation in Markdown format.
-      `;
+    // Highlight important terms
+    doc.match('(important|crucial|significant|key)').forEach(match => {
+      match.prepend('**').append('**');
+    });
 
-      const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 4000,
-      });
+    // Add emphasis to function and class names
+    doc.match('(Function|Class): #Noun').forEach(match => {
+      match.match('#Noun').prepend('_').append('_');
+    });
 
-      return response.choices[0].message.content || documentation;
-    } catch (error) {
-      console.error('Error enhancing documentation with AI:', error);
-      return documentation;
-    }
+    // Improve formatting of lists
+    doc.match('-').forEach(match => {
+      match.replaceWith('*');
+    });
+
+    // Add newlines before headings for better readability
+    doc.match('#Hashtag').forEach(match => {
+      match.prepend('\n\n');
+    });
+
+    return doc.text();
   }
 
   async generateAndSaveDocumentation(repositoryId: string): Promise<void> {
@@ -281,7 +287,11 @@ Last Updated: ${new Date(repoData.updated_at).toLocaleDateString()}
     this.customConfig = customConfig;
     this.ig = ignore().add(customConfig.ignore || []);
 
-    const documentation = await this.generateDocumentation(repository.fullName);
+    let documentation = await this.generateDocumentation(repository.fullName);
+
+    if (this.customConfig.aiEnhancement) {
+      documentation = this.enhanceDocumentationWithNLP(documentation);
+    }
 
     await prisma.document.create({
       data: {
