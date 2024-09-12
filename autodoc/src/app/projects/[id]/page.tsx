@@ -2,8 +2,9 @@ import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { getProject } from '@/services/projectService';
+import { getProject } from '@/services/ProjectService';
 import { LinkRepoForm } from '@/components/LinkRepoForm';
+import { DocSettings } from '@/components/DocSettings';
 import { AuthWrapper } from '@/components/AuthWrapper';
 
 export default async function ProjectPage({ params }: { params: { id: string } }) {
@@ -32,16 +33,30 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           <CardContent>
             <ul className="space-y-4">
               {project.repositories.map((repo) => (
-                <li key={repo.id} className="flex justify-between items-center">
-                  <span>{repo.name}</span>
-                  <div>
-                    <Button variant="outline" className="mr-2" onClick={() => window.open(repo.url, '_blank')}>
-                      View on GitHub
-                    </Button>
-                    <Link href={`/repositories/${repo.id}/docs`} passHref>
-                      <Button variant="outline">View Docs</Button>
-                    </Link>
+                <li key={repo.id} className="flex flex-col space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span>{repo.name}</span>
+                    <div>
+                      <Button variant="outline" className="mr-2" onClick={() => window.open(repo.url, '_blank')}>
+                        View on GitHub
+                      </Button>
+                      <Link href={`/repositories/${repo.id}/docs`} passHref>
+                        <Button variant="outline">View Docs</Button>
+                      </Link>
+                    </div>
                   </div>
+                  <DocSettings
+                    repositoryId={repo.id}
+                    initialConfig={repo.customConfig || { ignore: [] } as any}
+                    onSave={async (config) => {
+                      await fetch(`/api/repositories/${repo.id}/doc-settings`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(config),
+                      });
+                      // You might want to add some UI feedback here
+                    }}
+                  />
                 </li>
               ))}
             </ul>

@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { getProjects } from '@/services/projectService';
+import { getProjects } from '@/services/ProjectService';
 import { AuthWrapper } from '@/components/AuthWrapper';
 
 export default async function ProjectsPage() {

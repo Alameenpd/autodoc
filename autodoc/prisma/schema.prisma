@@ -44,7 +44,6 @@ model User {
   sessions      Session[]
   projects      Project[]
 }
-
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -52,6 +51,7 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
 
 model Project {
   id           String       @id @default(cuid())
@@ -64,16 +64,17 @@ model Project {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 }
-
 model Repository {
   id            String     @id @default(cuid())
   name          String
+  url           String?
   fullName      String
   private       Boolean
   projectId     String
   project       Project    @relation(fields: [projectId], references: [id])
   documents     Document[]
   webhookSecret String?    @unique
+  customConfig  Json?      // New field for storing custom configuration
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 }
@@ -81,7 +82,7 @@ model Repository {
 model Document {
   id           String     @id @default(cuid())
   title        String
-  content      String
+  content      String     @db.Text
   projectId    String
   project      Project    @relation(fields: [projectId], references: [id])
   repositoryId String

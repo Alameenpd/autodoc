@@ -1,5 +1,5 @@
 import React from 'react';
-import { NewProjectForm } from '@/components/NewProjectForm';
+import { NewProjectForm } from '@/components/ProjectForm';
 
 export default function NewProjectPage() {
   return (

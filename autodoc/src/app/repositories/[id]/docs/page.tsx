@@ -9,6 +9,7 @@ async function getDocumentation(repositoryId: string) {
   const document = await prisma.document.findFirst({
     where: { repositoryId },
     orderBy: { createdAt: 'desc' },
+    include: { repository: true },
   });
 
   return document;
@@ -23,21 +24,23 @@ export default async function DocViewerPage({ params }: { params: { id: string }
 
   return (
     <AuthWrapper>
-      <div>
+      <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">{document.title}</h1>
         <Card>
           <CardHeader>
-            <CardTitle>Documentation</CardTitle>
+            <CardTitle>Documentation for {document.repository.name}</CardTitle>
           </CardHeader>
           <CardContent>
-            <ReactMarkdown>{document.content}</ReactMarkdown>
+            <div className="prose max-w-none">
+              <ReactMarkdown>{document.content}</ReactMarkdown>
+            </div>
           </CardContent>
         </Card>
         <div className="mt-4">
           <Button
             onClick={async () => {
               await fetch(`/api/repositories/${params.id}/generate-docs`, { method: 'POST' });
-              // You might want to add some UI feedback here
+              // You might want to add some UI feedback here and refresh the page
             }}
           >
             Regenerate Documentation

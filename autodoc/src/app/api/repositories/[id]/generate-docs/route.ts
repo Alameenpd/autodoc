@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { DocGenerationService } from '@/services/docGenerationService';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(
   request: Request,
@@ -16,7 +17,26 @@ export async function POST(
   const repositoryId = params.id;
 
   try {
-    const docService = new DocGenerationService(session.accessToken);
+    const repository = await prisma.repository.findUnique({
+      where: { id: repositoryId },
+      include: { project: { include: { user: true } } },
+    });
+
+    if (!repository) {
+      return NextResponse.json({ error: 'Repository not found' }, { status: 404 });
+    }
+
+    const accessToken = await prisma.account.findFirst({
+      where: { userId: repository.project.user.id, provider: 'github' },
+      select: { access_token: true },
+    });
+
+    if (!accessToken) {
+      return NextResponse.json({ error: 'GitHub access token not found' }, { status: 404 });
+    }
+
+    const customConfig = repository.customConfig as { ignore?: string[]; aiEnhancement?: boolean } || {};
+    const docService = new DocGenerationService(accessToken.access_token as any, customConfig);
     await docService.generateAndSaveDocumentation(repositoryId);
 
     return NextResponse.json({ message: 'Documentation generated successfully' });

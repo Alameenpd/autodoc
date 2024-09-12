@@ -1,3 +1,4 @@
+'use client'
 import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
@@ -30,28 +31,29 @@ export function LinkRepoForm({ projectId, onSuccess }: LinkRepoFormProps) {
 
   React.useEffect(() => {
     if (session?.accessToken) {
-      fetchRepos();
+      fetchRepos(session.accessToken);
     }
   }, [session]);
-
-  async function fetchRepos() {
+  
+  async function fetchRepos(accessToken: string) {
     try {
-      const response = await fetch('https://api.github.com/user/repos', {
+      const response = await fetch("https://api.github.com/user/repos", {
         headers: {
-          Authorization: `Bearer ${session.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
       if (response.ok) {
         const data = await response.json();
         setRepos(data);
       } else {
-        console.error('Failed to fetch repositories');
+        console.error("Failed to fetch repositories");
       }
     } catch (error) {
-      console.error('Error fetching repositories:', error);
+      console.error("Error fetching repositories:", error);
     }
   }
-
+  
+  
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const response = await fetch(`/api/projects/${projectId}/repos`, {
@@ -90,8 +92,8 @@ export function LinkRepoForm({ projectId, onSuccess }: LinkRepoFormProps) {
                 </FormControl>
                 <SelectContent>
                   {repos.map((repo) => (
-                    <SelectItem key={repo.id} value={repo.id.toString()}>
-                      {repo.full_name}
+                    <SelectItem key={(repo as any).id} value={(repo as any).id.toString()}>
+                      {(repo as any).full_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
