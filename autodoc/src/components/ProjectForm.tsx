@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Project name is required" }),
@@ -15,6 +18,8 @@ const formSchema = z.object({
 
 export function NewProjectForm() {
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -24,6 +29,7 @@ export function NewProjectForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setError(null);
     try {
       const response = await fetch('/api/projects', {
         method: 'POST',
@@ -34,18 +40,27 @@ export function NewProjectForm() {
       });
 
       if (response.ok) {
-        router.push('/projects');
+        const project = await response.json();
+        router.push(`/projects/${project.id}`);
       } else {
-        console.error('Failed to create project');
+        const data = await response.json();
+        setError(data.error || 'Failed to create project');
       }
     } catch (error) {
       console.error('Error creating project:', error);
+      setError('An unexpected error occurred');
     }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {error && (
+          <Alert variant="destructive">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <FormField
           control={form.control}
           name="name"
