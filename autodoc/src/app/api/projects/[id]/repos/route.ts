@@ -7,11 +7,6 @@ import { setupWebhook } from '@/lib/setupWebhook';
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    console.log('Unauthorized')
-  }
-
   try {
     const { repoId } = await request.json();
     const projectId = params.id;
@@ -39,7 +34,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       },
     });
 
-    // Set up webhook
+
     await setupWebhook(repository.id, session.accessToken);
 
     return NextResponse.json(repository);
