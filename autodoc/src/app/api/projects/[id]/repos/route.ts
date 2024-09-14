@@ -9,6 +9,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    console.log('Unauthorized')
   }
 
   try {
